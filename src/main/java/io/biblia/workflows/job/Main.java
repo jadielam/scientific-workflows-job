@@ -52,7 +52,8 @@ public class Main {
 		}
 	}
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) throws IOException, IllegalArgumentException,
+	MalformedURLException {
 		
 		int sizeInMB  = (int)Double.parseDouble(args[0]);
 		int computationInSeconds = (int) Double.parseDouble(args[1]);
@@ -104,7 +105,7 @@ public class Main {
 	}
 	
 	private static void writeMBsToFile(int MBs, String folderPath, String fileName) 
-	throws IOException {
+	throws IOException, MalformedURLException, IllegalArgumentException {
 		try {
 			Path file = new Path(combinePath(folderPath, fileName));
 			if (fs.exists(file)) {
@@ -123,9 +124,11 @@ public class Main {
 		} catch (IllegalArgumentException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw e;
 		} catch (MalformedURLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+			throw e;
 		}
 		catch (IOException e) {
 			e.printStackTrace();
