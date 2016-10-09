@@ -1,10 +1,13 @@
 package io.biblia.workflows.job;
 
+import java.util.Properties;
 import java.net.URL;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.io.BufferedWriter;
+import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
@@ -20,13 +23,29 @@ public class Main {
 
 	private static FileSystem fs;
 	
-	private static String NAMENODE_URL = "hdfs://localhost:8020";
+	private static String NAMENODE_URL;
 	
 	private static String garbageToWrite;
 	
 	private static int noBytesGarbageToWrite;
 	
+	private static final Properties configuration;
+	
 	static {
+		//1. Reading system configuration
+		configuration = new Properties();
+		String confPath = System.getenv("SW_CONFIGURATION_FILE");
+		if (null != confPath) {
+			try{
+				InputStream is = new FileInputStream(confPath);
+				configuration.load(is);
+			}
+			catch(Exception e) {
+				e.printStackTrace();
+			}	
+		}
+		NAMENODE_URL = configuration.getProperty("nameNode");
+		
 		URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory());
 		try {
 			Configuration conf = new Configuration();
@@ -107,6 +126,7 @@ public class Main {
 	private static void writeMBsToFile(int MBs, String folderPath, String fileName) 
 	throws IOException, MalformedURLException, IllegalArgumentException {
 		try {
+			
 			Path file = new Path(combinePath(folderPath, fileName));
 			if (fs.exists(file)) {
 				fs.delete(file, true);
