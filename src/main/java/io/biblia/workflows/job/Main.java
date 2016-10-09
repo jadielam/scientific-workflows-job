@@ -52,7 +52,7 @@ public class Main {
 		}
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		
 		int sizeInMB  = (int)Double.parseDouble(args[0]);
 		int computationInSeconds = (int) Double.parseDouble(args[1]);
@@ -103,7 +103,8 @@ public class Main {
 		return basePath + relativePath;
 	}
 	
-	private static void writeMBsToFile(int MBs, String folderPath, String fileName) {
+	private static void writeMBsToFile(int MBs, String folderPath, String fileName) 
+	throws IOException {
 		try {
 			Path file = new Path(combinePath(folderPath, fileName));
 			if (fs.exists(file)) {
@@ -128,6 +129,7 @@ public class Main {
 		}
 		catch (IOException e) {
 			e.printStackTrace();
+			throw e;
 		}
 		
 		return;
