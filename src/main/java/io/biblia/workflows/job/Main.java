@@ -20,8 +20,6 @@ import org.apache.hadoop.fs.Path;
 import com.google.common.base.Preconditions;
 
 public class Main {
-
-	private static FileSystem fs;
 	
 	private static String NAMENODE_URL;
 	
@@ -29,34 +27,7 @@ public class Main {
 	
 	private static int noBytesGarbageToWrite;
 	
-	private static final Properties configuration;
-	
 	static {
-		//1. Reading system configuration
-		configuration = new Properties();
-		String confPath = System.getenv("SW_CONFIGURATION_FILE");
-		if (null != confPath) {
-			try{
-				InputStream is = new FileInputStream(confPath);
-				configuration.load(is);
-			}
-			catch(Exception e) {
-				e.printStackTrace();
-			}	
-		}
-		NAMENODE_URL = configuration.getProperty("nameNode");
-		
-		URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory());
-		try {
-			Configuration conf = new Configuration();
-			conf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
-			conf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
-			conf.set("fs.defaultFS", NAMENODE_URL);
-			fs = FileSystem.get(new URI(NAMENODE_URL), conf);
-		}
-		catch(Exception ex) {
-			ex.printStackTrace();
-		}
 		
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < 1000000; i++) {
@@ -71,14 +42,33 @@ public class Main {
 		}
 	}
 	
+	private static FileSystem getFileSystem(String nameNode) throws Exception {
+		FileSystem fs = null;
+		URL.setURLStreamHandlerFactory(new FsUrlStreamHandlerFactory());
+		try {
+			Configuration conf = new Configuration();
+			conf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
+			conf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
+			conf.set("fs.defaultFS", nameNode);
+			fs = FileSystem.get(new URI(NAMENODE_URL), conf);
+			return fs;
+		}
+		catch(Exception ex) {
+			ex.printStackTrace();
+			throw ex;
+		}
+	}
+	
 	public static void main(String[] args) throws IOException, IllegalArgumentException,
-	MalformedURLException {
+	MalformedURLException, Exception  {
 		
 		int sizeInMB  = (int)Double.parseDouble(args[0]);
 		int computationInSeconds = (int) Double.parseDouble(args[1]);
+		String nameNode = args[2];
+		FileSystem fs = getFileSystem(nameNode);
 		String outputFolder = args[args.length - 1];
 		long tStart = System.currentTimeMillis();
-		writeMBsToFile(sizeInMB, outputFolder, "garbage.txt");
+		writeMBsToFile(fs, sizeInMB, outputFolder, "garbage.txt");
 		long tEnd = System.currentTimeMillis();
 		double tDeltaSeconds = (tEnd - tStart) / 1000.0;
 		
@@ -123,7 +113,7 @@ public class Main {
 		return basePath + relativePath;
 	}
 	
-	private static void writeMBsToFile(int MBs, String folderPath, String fileName) 
+	private static void writeMBsToFile(FileSystem fs, int MBs, String folderPath, String fileName) 
 	throws IOException, MalformedURLException, IllegalArgumentException {
 		try {
 			
