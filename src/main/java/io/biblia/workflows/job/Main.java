@@ -21,8 +21,6 @@ import com.google.common.base.Preconditions;
 
 public class Main {
 	
-	private static String NAMENODE_URL;
-	
 	private static String garbageToWrite;
 	
 	private static int noBytesGarbageToWrite;
@@ -50,7 +48,7 @@ public class Main {
 			conf.set("fs.hdfs.impl", org.apache.hadoop.hdfs.DistributedFileSystem.class.getName());
 			conf.set("fs.file.impl", org.apache.hadoop.fs.LocalFileSystem.class.getName());
 			conf.set("fs.defaultFS", nameNode);
-			fs = FileSystem.get(new URI(NAMENODE_URL), conf);
+			fs = FileSystem.get(new URI(nameNode), conf);
 			return fs;
 		}
 		catch(Exception ex) {
